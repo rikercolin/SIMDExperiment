@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Windows.Media.Imaging;
 using System.IO;
 using System.Threading;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace SIMDExperiment
 {
@@ -34,7 +34,7 @@ namespace SIMDExperiment
 
             while (countdown.CurrentCount > 0)
             {
-                Thread.Sleep(100);
+                Thread.Sleep(200);
                 Console.Clear();
                 Console.WriteLine("Image creation in progress: {0}/{1}", numberOfImages, numberOfImages - countdown.CurrentCount);
             }

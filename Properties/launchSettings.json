@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SIMDExperiment": {
+      "commandName": "Project",
+      "nativeDebugging": false
+    }
+  }
+}
