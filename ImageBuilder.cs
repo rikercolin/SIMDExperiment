@@ -26,7 +26,8 @@ namespace SIMDExperiment
             var countdown = new CountdownEvent(numberOfImages);
             for (int i = 0; i < numberOfImages; i++)
             {
-                ThreadPool.QueueUserWorkItem(x => {
+                ThreadPool.QueueUserWorkItem(x =>
+                {
                     BuildTask(this);
                     countdown.Signal();
                 });
@@ -59,12 +60,12 @@ namespace SIMDExperiment
             string url = imageFolder.Name + "\\" + name;
 
             //Write the bitmap
-            using (var filestream = new FileStream(url, FileMode.Create))
-            {
-                BitmapEncoder encoder = new BmpBitmapEncoder();
-                encoder.Frames.Add(BitmapFrame.Create(bitmap));
-                encoder.Save(filestream);
-            }
+            using var filestream = new FileStream(url, FileMode.Create);
+            BitmapEncoder encoder = new BmpBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(bitmap));
+            encoder.Save(filestream);
+            filestream.Close();
+
         }
     }
 }
