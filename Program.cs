@@ -23,19 +23,19 @@ namespace SIMDExperiment
             ContinuePrompt("Ready to start image generation");
 
             // Specs for image creation and image creation
-            ImageBuilder imageBuilder = new(imageFolder, (32 * 1), (32 * 1), 1);
-            //imageBuilder.Build();
+            ImageBuilder imageBuilder = new(imageFolder, (32 * 512), (32 * 512), 10);
+            imageBuilder.Build();
 
             ContinuePrompt("Ready to start tests");
 
-            byte color = 1; //Invert basically
+            byte color = 127; //Invert basically
 
             //Run Tests
             var runner = new TestRunner(imageFolder, false, color);
             
-            runner.Start(SIMD.Test, true, false);
-            //ContinuePrompt();
-            runner.Start(SISD.Test, true, false);
+            runner.Start(SIMD.Test, true, true);
+            ContinuePrompt();
+            runner.Start(SISD.Test, true, true);
 
             //Cleanup();
         }

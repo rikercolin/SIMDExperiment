@@ -54,7 +54,7 @@ namespace SIMDExperiment
                     {
                         var rBmp = BitmapToByteArray(file);
                         test(rBmp.ByteArray, color);
-                        ByteArrayToBitmap(rBmp, save);
+                        ByteArrayToBitmap(rBmp, save, test.Method.DeclaringType.Name);
                         countdown.Signal();
                     });
                 }
@@ -88,13 +88,16 @@ namespace SIMDExperiment
 
         }
 
-        static public void ByteArrayToBitmap(RawBitMap rBmp, bool save)
+        static public void ByteArrayToBitmap(RawBitMap rBmp, bool save, string testname)
         {
-            Marshal.Copy(rBmp.Ptr,rBmp.ByteArray, 0, rBmp.Length);
-
+            Marshal.Copy(rBmp.ByteArray, 0, rBmp.Ptr, rBmp.Length);
             rBmp.Bmp.UnlockBits(rBmp.BmpData);
-          
-            if (save) rBmp.Bmp.Save(rBmp.FileInformation.DirectoryName + "\\result-" + rBmp.FileInformation.Name);
+
+            if (save) {
+                var testFolder = new DirectoryInfo(rBmp.FileInformation.DirectoryName + "\\" + testname);
+                if (!testFolder.Exists) System.IO.Directory.CreateDirectory(rBmp.FileInformation.DirectoryName + "\\" + testname);
+                rBmp.Bmp.Save(rBmp.FileInformation.DirectoryName + "\\" + testname + "\\" + rBmp.FileInformation.Name);
+            } 
         }
     }
 }
