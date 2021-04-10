@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Numerics;
 
@@ -20,37 +21,60 @@ namespace SIMDExperiment
             Console.Write("Is SIMD enabled: " + Vector.IsHardwareAccelerated);
             Console.WriteLine("| SIMD byte size, Counter:{0}", Vector<byte>.Count);
 
-            ContinuePrompt("Ready to start image generation");
 
-            // Specs for image creation and image creation
-            ImageBuilder imageBuilder = new(imageFolder, (32 * 512), (32 * 512), 10);
-            //imageBuilder.Build();
-            //GC.Collect();
+            var simdFile = CreateRecordFile("SIMD");
+            var sisdFile = CreateRecordFile("SISD");
+            ContinuePrompt("Ready to start testing");
 
-            ContinuePrompt("Ready to start tests");
+            int numberOfImages = 10;
+            for (int i = 0; i < 10; i++)
+            {
+                // Specs for image creation and image creation
+                ImageBuilder imageBuilder = new(imageFolder, 32 * ((int)Math.Pow(2,i)), 32 * ((int)Math.Pow(2, i)), numberOfImages);
+                imageBuilder.Build();
+                GC.Collect();
+                Console.WriteLine(i + ", Image Creation Stage Done");
 
-            byte color = 127; //Invert basically
+                byte color = 127; //Invert basically
 
-            //Run Tests
-            var runner = new TestRunner(imageFolder, false, color);
-            
-            runner.Start(SIMD.Test, true, false);
-            GC.Collect();
-            ContinuePrompt();
-            runner.Start(SISD.Test, true, false);
-            GC.Collect();
+                //Run Tests
+                var runner = new TestRunner(imageFolder, false, color);
 
-            //Cleanup();
+                RecordResult(simdFile, runner.Start(SIMD.Test, true, true, numberOfImages), i);
+                GC.Collect();
+                Console.WriteLine(i + ", SIMD Test Stage Done");
+
+                RecordResult(sisdFile, runner.Start(SISD.Test, true, true, numberOfImages), i);
+                GC.Collect();
+                Console.WriteLine(i + ", SISD Test Stage Done");
+
+                Cleanup();
+                Console.WriteLine(i + ", Cleanup Stage Done");
+                Console.WriteLine("\n------------------------\n");
+            }
         }
 
         static void Cleanup()
         {
-            Console.WriteLine("Enter any key to start Clean up");
-            Console.ReadLine();
-
             foreach (FileInfo file in imageFolder.GetFiles())
             {
-                file.Delete();
+                if (file.Extension == ".bmp")
+                {
+                    bool notdeletedyet = true;
+                    while(notdeletedyet)
+                    {
+                        try
+                        {
+                            file.Delete();
+                            notdeletedyet = false;
+                        }
+                        catch (Exception e)
+                        {
+                            notdeletedyet = true;
+                        }
+                    }
+                }
+                   
             }
         }
 
@@ -79,5 +103,45 @@ namespace SIMDExperiment
             Console.ReadLine();
             Console.CursorVisible = false;
         }
+
+        public static void RecordResult(FileInfo file, TimeSpan time, int size)
+        {
+            using (var writer = new StreamWriter(file.FullName, true))
+            {
+                writer.Write(time.TotalMilliseconds + "," + size + "\r\n");
+            }
+        }
+
+        public static FileInfo CreateRecordFile(string name)
+        {
+            string fullfilename = name + ".csv";
+            string filepath = imageFolderName + "\\" + fullfilename;
+
+            using (var file = new FileStream(filepath, FileMode.Create))
+            {
+            }
+
+            return new FileInfo(filepath);
+        }
+
+        private static FileStream GetWriteStream(string path, int timeoutMs)
+        {
+            var time = Stopwatch.StartNew();
+            while (time.ElapsedMilliseconds < timeoutMs)
+            {
+                try
+                {
+                    return new FileStream(path, FileMode.Create, FileAccess.Write);
+                }
+                catch (IOException e)
+                {
+                    // access error
+                    if (e.HResult != -2147024864)
+                        throw;
+                }
+            }
+
+            throw new TimeoutException($"Failed to get a write handle to {path} within {timeoutMs}ms.");
+        } // Credit to Almund Stack Overflow
     }
 }

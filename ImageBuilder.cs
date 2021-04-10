@@ -33,14 +33,7 @@ namespace SIMDExperiment
                 });
             }
 
-            while (countdown.CurrentCount > 0)
-            {
-                Thread.Sleep(200);
-
-                Program.FixedDisplay("Image creation in progress:" + numberOfImages + "/" + (numberOfImages - countdown.CurrentCount));
-            }
-
-            Console.WriteLine("Image creation is done!");
+            while (countdown.CurrentCount != 0) ;
         }
 
         private void BuildTask(object obj)

@@ -2,8 +2,8 @@
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Threading;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace SIMDExperiment
 {
@@ -41,34 +41,33 @@ namespace SIMDExperiment
             this.color = color;
         }
 
-        public void Start(Func<byte[], byte, int> test, bool threading, bool save)
+        public TimeSpan Start(Func<byte[], byte, int> test, bool threading, bool save, int size)
         {
-            var countdown = new CountdownEvent(imageFolder.GetFiles().Length);
+            var countdown = new CountdownEvent(size);
             start = DateTime.Now;
 
             if (threading)
             {
                 foreach (FileInfo file in imageFolder.EnumerateFiles())
                 {
-                    ThreadPool.QueueUserWorkItem(x =>
+                    if (file.Extension == ".bmp")
                     {
-                        var rBmp = BitmapToByteArray(file);
-                        test(rBmp.ByteArray, color);
-                        ByteArrayToBitmap(rBmp, save, test.Method.DeclaringType.Name);
-                        countdown.Signal();
-                    });
+                        ThreadPool.QueueUserWorkItem(x =>
+                        {
+                            var rBmp = BitmapToByteArray(file);
+                            test(rBmp.ByteArray, color);
+                            ByteArrayToBitmap(rBmp, save, test.Method.DeclaringType.Name);
+                            countdown.Signal();
+                        });
+                    }
                 }
+                countdown.Wait();
 
-                while (countdown.CurrentCount != 0)
-                {
-                    Thread.Sleep(200);
-                    Program.FixedDisplay("Files left to process: " + countdown.CurrentCount);
-                }
-                Console.WriteLine("Time taken for the test: {0}", DateTime.Now.Subtract(start).ToString());
+                return DateTime.Now.Subtract(start);
             }
             else
             {
-                //TODO
+                return DateTime.Now.Subtract(DateTime.Now);
             }
         }
 
@@ -93,11 +92,12 @@ namespace SIMDExperiment
             Marshal.Copy(rBmp.ByteArray, 0, rBmp.Ptr, rBmp.Length);
             rBmp.Bmp.UnlockBits(rBmp.BmpData);
 
-            if (save) {
+            if (save)
+            {
                 var testFolder = new DirectoryInfo(rBmp.FileInformation.DirectoryName + "\\" + testname);
                 if (!testFolder.Exists) System.IO.Directory.CreateDirectory(rBmp.FileInformation.DirectoryName + "\\" + testname);
                 rBmp.Bmp.Save(rBmp.FileInformation.DirectoryName + "\\" + testname + "\\" + rBmp.FileInformation.Name);
-            } 
+            }
         }
     }
 }
