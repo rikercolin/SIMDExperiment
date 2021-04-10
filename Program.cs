@@ -24,7 +24,8 @@ namespace SIMDExperiment
 
             // Specs for image creation and image creation
             ImageBuilder imageBuilder = new(imageFolder, (32 * 512), (32 * 512), 10);
-            imageBuilder.Build();
+            //imageBuilder.Build();
+            //GC.Collect();
 
             ContinuePrompt("Ready to start tests");
 
@@ -33,9 +34,11 @@ namespace SIMDExperiment
             //Run Tests
             var runner = new TestRunner(imageFolder, false, color);
             
-            runner.Start(SIMD.Test, true, true);
+            runner.Start(SIMD.Test, true, false);
+            GC.Collect();
             ContinuePrompt();
-            runner.Start(SISD.Test, true, true);
+            runner.Start(SISD.Test, true, false);
+            GC.Collect();
 
             //Cleanup();
         }

@@ -65,7 +65,6 @@ namespace SIMDExperiment
             encoder.Frames.Add(BitmapFrame.Create(bitmap));
             encoder.Save(filestream);
             filestream.Close();
-
         }
     }
 }
