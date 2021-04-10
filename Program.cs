@@ -16,31 +16,26 @@ namespace SIMDExperiment
             imageFolder = new DirectoryInfo(imageFolderName);
             if (!imageFolder.Exists) System.IO.Directory.CreateDirectory(imageFolderName);
 
-            Console.WriteLine("Is SIMD enabled: " + Vector.IsHardwareAccelerated);
-            Console.WriteLine("SIMD Int size, Counter:{0}", Vector<byte>.Count);
+            Console.WriteLine("SIMD System Stats");
+            Console.Write("Is SIMD enabled: " + Vector.IsHardwareAccelerated);
+            Console.WriteLine("| SIMD byte size, Counter:{0}", Vector<byte>.Count);
 
-            Console.WriteLine("Press any key to start IMAGE GEN");
-            Console.ReadLine();
+            ContinuePrompt("Ready to start image generation");
 
             // Specs for image creation and image creation
-            ImageBuilder imageBuilder = new ImageBuilder(imageFolder, (32 * 100), (32 * 100), 100);
-            imageBuilder.Build();
+            ImageBuilder imageBuilder = new(imageFolder, (32 * 1), (32 * 1), 1);
+            //imageBuilder.Build();
 
-            Console.WriteLine("Press any key to start TEST");
-            Console.ReadLine();
+            ContinuePrompt("Ready to start tests");
 
-            byte[] colorbytes = new byte[32];
-            Array.Fill<byte>(colorbytes, 100);
-            Vector<byte> color = new Vector<byte>(colorbytes);
-
-
+            byte color = 1; //Invert basically
 
             //Run Tests
-            var sisd = new SISDTest(imageFolder, true);
-            //sisd.Start();
-
-            var simd = new SIMDTest(imageFolder, true);
-            simd.Start(color);
+            var runner = new TestRunner(imageFolder, false, color);
+            
+            runner.Start(SIMD.Test, true, false);
+            //ContinuePrompt();
+            runner.Start(SISD.Test, true, false);
 
             //Cleanup();
         }
@@ -54,6 +49,32 @@ namespace SIMDExperiment
             {
                 file.Delete();
             }
+        }
+
+        public static void FixedDisplay(string message)
+        {
+            int left = Console.CursorLeft;
+            int top = Console.CursorTop;
+
+            Console.SetCursorPosition(2, Console.WindowHeight - 2);
+            Console.WriteLine(message);
+            Console.SetCursorPosition(left, top);
+        }
+
+        public static void ContinuePrompt()
+        {
+            Console.CursorVisible = true;
+            Console.WriteLine("Press any key to continue");
+            Console.ReadLine();
+            Console.CursorVisible = false;
+        }
+
+        public static void ContinuePrompt(String message)
+        {
+            Console.CursorVisible = true;
+            Console.WriteLine(message + "\nPress any key to continue");
+            Console.ReadLine();
+            Console.CursorVisible = false;
         }
     }
 }

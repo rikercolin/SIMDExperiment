@@ -36,8 +36,8 @@ namespace SIMDExperiment
             while (countdown.CurrentCount > 0)
             {
                 Thread.Sleep(200);
-                Console.Clear();
-                Console.WriteLine("Image creation in progress: {0}/{1}", numberOfImages, numberOfImages - countdown.CurrentCount);
+
+                Program.FixedDisplay("Image creation in progress:" + numberOfImages + "/" + (numberOfImages - countdown.CurrentCount));
             }
 
             Console.WriteLine("Image creation is done!");
